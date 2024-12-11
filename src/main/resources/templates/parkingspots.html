@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Parking Spots</title>
+    
+</head>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3 {
+    color: #f4a261;
+    text-align: center;
+}
+
+a {
+    text-decoration: none;
+    color: #333;
+}
+
+/* Estilos para el botón de cerrar sesión */
+a[href="/login"] {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 16px;
+    padding: 10px 15px;
+    background-color: #f4a261;
+    color: #fff;
+    border-radius: 5px;
+    text-align: center;
+}
+
+a:hover {
+    background-color: #e76f51;
+}
+
+button {
+    font-size: 16px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: 10px;
+}
+
+#carButton {
+    background-color: #f4a261;
+    color: white;
+}
+
+#bikeButton {
+    background-color: #e76f51;
+    color: white;
+}
+
+#exitButton {
+    background-color: #264653;
+    color: white;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+form {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columnas */
+    gap: 10px; /* Espaciado entre las columnas */
+    margin-bottom: 20px; /* Margen inferior para separar de otros elementos */
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column; /* Disposición vertical */
+}
+
+input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Estilo de entrada en foco */
+input:focus {
+    border-color: #264653; /* Cambia el borde al enfocarse */
+    outline: none; /* Elimina el contorno predeterminado */
+}
+
+/* Espacios de estacionamiento */
+.spaces-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.parking-space {
+    padding: 10px;
+    text-align: center;
+    color: white;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+/* Espacios libres (verde) */
+.parking-space.available {
+    background-color: #2a9d8f; /* Verde */
+}
+
+/* Espacios ocupados (rojo) */
+.car-occupied {
+    background-color: #e76f51; /* Rojo */
+}
+
+/* Espacios ocupados (rojo) para motos */
+.bike-occupied {
+    background-color: #e76f51; /* Rojo */
+}
+
+/* Estilo para la tabla */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+}
+
+table th, table td {
+    padding: 12px;
+    text-align: center;
+    border: 2px solid #ccc;
+}
+
+table th {
+    background-color: #f4a261;
+    color: white;
+}
+
+table tr:nth-child(even) {
+    background-color: #f1f1f1;
+}
+
+table tr:hover {
+    background-color: #e9e9e9;
+}
+
+</style>
+<body>
+    <a href="/login">Cerrar sesión</a>
+
+    <h1>Bienvenido al Dashboard</h1>
+
+    <h2>Registrar Vehículo</h2>
+
+    <div class="vehicle-selection">
+        <button type="button" id="carButton" onclick="showForm('carForm')">Registrar Vehículo</button>
+        <button type="button" id="bikeButton" onclick="showForm('bikeForm')">Registrar Motocicleta</button>
+        <button type="button" id="exitButton" onclick="showForm('exitFormContainer')">Dar Salida</button>
+    </div>
+
+    <div id="loadingMessage" style="display: none;">
+        <p>Registrando vehículo...</p>
+    </div>
+
+    <div class="exit-form-container" id="exitFormContainer" style="display:none;">
+        <h2>Dar Salida a Vehículo</h2>
+        <form id="exitForm" onsubmit="return handleExit(event)">
+            <input type="text" id="exitPlateNumber" placeholder="Placa del Vehículo" required />
+            <input type="text" id="exitCedula" placeholder="Cédula del Propietario" required />
+            <button type="submit">Dar Salida</button>
+        </form>
+        <div id="exitStatus"></div> <!-- Aquí se mostrará el resultado (valor a pagar) -->
+    </div>
+
+<form id="carForm" method="post" style="display:none;" onsubmit="return validateCarForm(event)">
+    <h3>Formulario para Automóvil</h3>
+    <div class="form-group">
+        <input type="text" name="plateNumber" id="carPlateNumber" placeholder="Placa del Vehículo" required />
+    </div>
+    <div id="carPlateError" style="color: red; display: none;">La placa debe tener el formato de 3 letras seguidas de 3 números (LLL###).</div>
+    <div class="form-group">
+        <input type="text" name="color" id="carColor" placeholder="Color del Vehículo" />
+    </div>
+    <div class="form-group">
+        <input type="text" name="owner" placeholder="Propietario" required />
+    </div>
+    <div class="form-group">
+        <input type="text" name="cedula" id="carCedula" placeholder="Cédula del Propietario" required />
+    </div>
+    <div class="form-group">
+        <input type="text" name="telefono" id="carTelefono" placeholder="Número Telefónico" required />
+    </div>
+    <div class="form-group">
+        <input type="text" name="house" placeholder="Casa a la que se dirige" required />
+    </div>
+    
+    <!-- Campo oculto para enviar el espacio seleccionado -->
+    <input type="hidden" name="parking_spot_id" id="carParkingSpot" />
+
+    <!-- Campo oculto para la hora de entrada (será automático) -->
+    <input type="hidden" name="entry_time" id="carEntryTime" />
+
+    <div id="carSpacesContainer" class="spaces-grid">
+        <!-- Espacios 1-85 -->
+        <script>
+            const carSpacesContainer = document.getElementById('carSpacesContainer');
+            let selectedCarSpace = null;  // Definimos la variable
+
+            // Creamos los espacios para los carros
+            for (let i = 1; i <= 85; i++) {
+                const space = document.createElement('div');
+                space.textContent = `${i}`;
+                space.className = 'parking-space available';
+                // Asignamos un manejador para el clic que actualice selectedCarSpace
+                space.onclick = function() { 
+                    selectSpace(space, 'car'); 
+                };
+                carSpacesContainer.appendChild(space);
+            }
+
+            // Función que se llama cuando se selecciona un espacio
+            function selectSpace(space, type) {
+                // Primero, desmarcar cualquier espacio previamente seleccionado
+                const spaces = document.querySelectorAll(`.${type}-space`);
+                spaces.forEach(s => s.classList.remove('selected')); // Elimina la clase 'selected'
+
+                // Marcar el nuevo espacio como seleccionado
+                space.classList.add('selected');
+                selectedCarSpace = space.textContent; // Guardamos el número del espacio seleccionado
+
+                // Actualizamos el valor del campo oculto
+                document.getElementById('carParkingSpot').value = selectedCarSpace;
+            }
+
+            // Hacemos una validación para asegurarnos que haya un espacio seleccionado antes de enviar el formulario
+            function validateCarForm(event) {
+                if (!selectedCarSpace) {
+                    alert('Por favor, selecciona un espacio de estacionamiento');
+                    event.preventDefault(); // Prevenimos el envío del formulario
+                    return false;
+                }
+
+                // Asignamos la hora de entrada al campo oculto
+                document.getElementById('carEntryTime').value = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+                return true; // Si todo es válido, permitimos que se envíe el formulario
+            }
+        </script>
+    </div>
+    <button type="submit">Registrar Automóvil</button>
+</form>
+
+<!-- Formulario de Moto -->
+<form id="bikeForm" method="post" style="display:none;" onsubmit="return validateBikeForm(event)">
+    <h3>Formulario para Moto</h3>
+    <div class="form-group">
+        <input type="text" name="plateNumber" id="bikePlateNumber" placeholder="Placa del Vehículo" required />
+    </div>
+    <div id="bikePlateError" style="color: red; display: none;">La placa debe tener el formato de 3 letras seguidas de 3 números (LLL###).</div>
+    <div class="form-group">
+        <input type="text" name="owner" id="bikeOwner" placeholder="Propietario" required />
+    </div>
+    <div class="form-group">
+        <input type="text" name="cedula" id="bikeCedula" placeholder="Cédula del Propietario" required />
+    </div>
+    <div class="form-group">
+        <input type="text" name="telefono" id="bikeTelefono" placeholder="Número Telefónico" required />
+    </div>
+    <div class="form-group">
+        <input type="text" name="house" id="bikeHouse" placeholder="Casa a la que se dirige" required />
+    </div>
+    
+    <!-- Campo oculto para enviar el espacio seleccionado -->
+    <input type="hidden" name="parking_spot_id" id="bikeParkingSpot" />
+
+    <!-- Campo oculto para la hora de entrada -->
+    <input type="hidden" name="entry_time" id="bikeEntryTime" />
+
+    <div id="bikeSpacesContainer" class="spaces-grid">
+        <!-- Espacios 86a-100b -->
+        <script>
+            const bikeSpacesContainer = document.getElementById('bikeSpacesContainer');
+            let selectedBikeSpace = null;  // Definimos la variable
+
+            // Creamos los espacios para las motos (Espacios 86a-100b)
+            for (let i = 86; i <= 100; i++) {
+                ['a', 'b'].forEach(letter => {
+                    const space = document.createElement('div');
+                    space.textContent = `${i}${letter}`;
+                    space.className = 'parking-space available bike-space'; // Clase específica para motos
+                    // Asignamos un manejador para el clic que actualice selectedBikeSpace
+                    space.onclick = function() { 
+                        selectSpace(space, 'bike'); 
+                    };
+                    bikeSpacesContainer.appendChild(space);
+                });
+            }
+
+            // Función que se llama cuando se selecciona un espacio
+            function selectSpace(space, type) {
+                // Primero, desmarcar cualquier espacio previamente seleccionado
+                const spaces = document.querySelectorAll(`.${type}-space`);
+                spaces.forEach(s => s.classList.remove('selected')); // Elimina la clase 'selected'
+
+                // Marcar el nuevo espacio como seleccionado
+                space.classList.add('selected');
+                selectedBikeSpace = space.textContent; // Guardamos el número del espacio seleccionado
+
+                // Actualizamos el valor del campo oculto
+                document.getElementById('bikeParkingSpot').value = selectedBikeSpace;
+            }
+
+            // Hacemos una validación para asegurarnos que haya un espacio seleccionado antes de enviar el formulario
+            function validateBikeForm(event) {
+                if (!selectedBikeSpace) {
+                    alert('Por favor, selecciona un espacio de estacionamiento para la moto');
+                    event.preventDefault(); // Prevenimos el envío del formulario
+                    return false;
+                }
+
+                // Asignamos la hora de entrada al campo oculto
+                document.getElementById('bikeEntryTime').value = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+                return true; // Si todo es válido, permitimos que se envíe el formulario
+            }
+        </script>
+    </div>
+    <button type="submit">Registrar Moto</button>
+</form>
+
+
+
+    <h2>Lista de Vehículos Registrados</h2>
+	<table>
+	    <tr>
+	        <th>Placa</th>
+	        <th>Propietario</th>
+	        <th>Cédula</th>
+	        <th>Teléfono</th>
+	        <th>Casa</th>
+	        <th>Espacio Asignado</th>
+	    </tr>
+	    <tr th:each="vehicle : ${vehicles}">
+	        <td th:text="${vehicle.plateNumber}"></td>
+	        <td th:text="${vehicle.owner}"></td>
+	        <td th:text="${vehicle.cedula}"></td>
+	        <td th:text="${vehicle.telefono}"></td>
+	        <td th:text="${vehicle.house}"></td>
+	        <td th:text="${vehicle.assignedSpace}"></td>
+	    </tr>
+	</table>
+
+
+    <script>
+        function showForm(formId) {
+            document.getElementById('carForm').style.display = 'none';
+            document.getElementById('bikeForm').style.display = 'none';
+            document.getElementById('exitFormContainer').style.display = 'none';
+            document.getElementById(formId).style.display = 'block';
+        }
+
+        function selectSpace(space, vehicleType) {
+            const selectedClass = vehicleType === 'car' ? 'car-occupied' : 'bike-occupied';
+            if (space.classList.contains('available')) {
+                space.classList.remove('available');
+                space.classList.add(selectedClass);
+            } else if (space.classList.contains(selectedClass)) {
+                space.classList.remove(selectedClass);
+                space.classList.add('available');
+            }
+        }
+
+        // Enviar datos al backend para registrar un automóvil
+        function validateCarForm(event) {
+            event.preventDefault(); // Evita que el formulario se envíe de la manera tradicional
+
+            const plate = document.getElementById('carPlateNumber').value;
+            const owner = document.querySelector('input[name="owner"]').value;
+            const cedula = document.getElementById('carCedula').value;
+            const telefono = document.getElementById('carTelefono').value;
+            const house = document.querySelector('input[name="house"]').value;
+
+            // Imprimir los datos para verificar
+            console.log("Placa:", plate);
+            console.log("Propietario:", owner);
+            console.log("Cédula:", cedula);
+            console.log("Teléfono:", telefono);
+            console.log("Casa:", house);
+            console.log("Espacio Asignado:", assignedSpace);
+            
+            // Realizar la solicitud POST al backend
+            const assignedSpace = document.getElementById('carAssignedSpace').value;  // Captura el espacio asignado
+
+         // Incluirlo en los datos enviados al backend
+         fetch('/parking-spots/register', {  
+             method: 'POST',
+             headers: {
+                 'Content-Type': 'application/json'
+             },
+             body: JSON.stringify({
+                 plateNumber: plate,
+                 owner: owner,
+                 cedula: cedula,
+                 telefono: telefono,
+                 house: house,
+                 assignedSpace: assignedSpace  // Aquí lo agregas
+             })
+         })
+         .then(response => response.json())
+         .then(data => {
+             console.log("Respuesta del servidor:", data);
+             alert('Vehículo registrado correctamente.');
+         })
+         .catch(error => {
+             console.error('Error:', error);
+             alert('Hubo un error al registrar el vehículo.');
+         });
+
+        }
+        function validateCarForm(event) {
+            event.preventDefault();  // Evitar que el formulario se envíe de manera tradicional
+
+            const plate = document.getElementById('carPlateNumber').value;
+            const owner = document.querySelector('input[name="owner"]').value;
+            const cedula = document.getElementById('carCedula').value;
+            const telefono = document.getElementById('carTelefono').value;
+            const house = document.querySelector('input[name="house"]').value;
+            const assignedSpace = document.getElementById('carParkingSpot').value;
+
+            // Verificar si el valor de assignedSpace es correcto
+            console.log("Espacio Asignado:", assignedSpace);
+
+            const vehicleData = {
+                plateNumber: plate,
+                owner: owner,
+                cedula: cedula,
+                telefono: telefono,
+                house: house,
+                assignedSpace: assignedSpace,
+                entryTime: new Date().toISOString()  // Hora de entrada
+            };
+
+            // Verificar que los datos se están enviando correctamente
+            console.log("Datos a enviar:", vehicleData);
+
+            fetch('/parking-spots/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(vehicleData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Respuesta del servidor:", data);
+                alert('Vehículo registrado correctamente.');
+
+                // Recargar la lista de vehículos
+                fetch('/parking-spots/list')
+                    .then(response => response.json())
+                    .then(vehicles => {
+                        const tableBody = document.querySelector('table tbody');
+                        tableBody.innerHTML = ''; // Limpiar la tabla
+
+                        vehicles.forEach(vehicle => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${vehicle.plateNumber}</td>
+                                <td>${vehicle.owner}</td>
+                                <td>${vehicle.cedula}</td>
+                                <td>${vehicle.telefono}</td>
+                                <td>${vehicle.house}</td>
+                                <td>${vehicle.assignedSpace}</td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error al obtener la lista de vehículos:', error);
+                        alert('Hubo un error al cargar la lista de vehículos.');
+                    });
+            })
+             
+        }
+
+    </script>
+</body>
+</html>

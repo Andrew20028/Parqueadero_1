@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<nav><ul>    
+    <li><a href="/login">Cerrar sesión</a></li>
+  </ul>
+</nav>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+</head>
+<style>
+/* Reset some default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f7fb;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+/* Container for the main content */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* Header */
+h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 700;
+}
+
+/* Button group for navigation */
+.button-group {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.button-group .btn {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button-group .btn:hover {
+    background-color: #0056b3;
+}
+
+/* Card Components */
+.card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 15px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* Form inputs */
+.form-label {
+    font-size: 1rem;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: #f9f9f9;
+}
+
+.form-control:disabled {
+    background-color: #e9ecef;
+}
+
+.btn {
+    background-color: #28a745;
+    color: white;
+    border-radius: 5px;
+    padding: 10px 20px;
+    margin-top: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #218838;
+}
+
+.btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Tables */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.table th,
+.table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.table th {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Section visibility */
+.section {
+    display: none;
+}
+
+/* Style for inputs inside sections when editing */
+.tariff-input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+/* Special card for vehicle and parking management */
+#vehicle-management, #parking-management {
+    background-color: #fafafa;
+}
+
+#vehicle-management .card-header,
+#parking-management .card-header {
+    background-color: #28a745;
+}
+
+.card-body input {
+    margin-bottom: 15px;
+}
+
+/* Customizable buttons */
+#save-tariffs-btn, #motorcycle-save-tariffs-btn, #car-save-tariffs-btn {
+    background-color: #17a2b8;
+}
+
+#save-tariffs-btn:hover, #motorcycle-save-tariffs-btn:hover, #car-save-tariffs-btn:hover {
+    background-color: #138496;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .button-group {
+        flex-direction: column;
+    }
+    .button-group .btn {
+        margin: 5px 0;
+    }
+    h1 {
+        font-size: 2rem;
+    }
+}
+
+</style>
+<body>
+    <div class="container">
+        <h1>Admin Panel</h1>
+
+        <!-- Botones principales -->
+        <div class="button-group">
+            <button class="btn" onclick="toggleSection('tariff-management')">Gestión de Tarifas</button>
+            <button class="btn" onclick="toggleSection('vehicle-management')">Gestión de Vehículos</button>
+            <button class="btn" onclick="toggleSection('parking-management')">Gestión de Espacios</button>
+        </div>
+
+        <!-- Sección de Gestión de Tarifas -->
+        <div id="tariff-management" class="section" style="display: none;">
+            <h2>Gestión de Tarifas</h2>
+
+            <!-- Tarifas para Carros -->
+            <div class="card">
+                <div class="card-header">Tarifas para Carros</div>
+                <div class="card-body">
+                    <form id="car-tariff-form">
+                        <label for="car-min-tariff" class="form-label">Tarifa por Minuto:</label>
+                        <input type="number" id="car-min-tariff" class="form-control car-tariff-input" disabled>
+
+                        <label for="car-hour-tariff" class="form-label">Tarifa por Hora:</label>
+                        <input type="number" id="car-hour-tariff" class="form-control car-tariff-input" disabled>
+
+                        <label for="car-day-tariff" class="form-label">Tarifa por Día:</label>
+                        <input type="number" id="car-day-tariff" class="form-control car-tariff-input" disabled>
+
+                        <label for="car-week-tariff" class="form-label">Tarifa por Semana:</label>
+                        <input type="number" id="car-week-tariff" class="form-control car-tariff-input" disabled>
+
+                        <label for="car-month-tariff" class="form-label">Tarifa por Mes:</label>
+                        <input type="number" id="car-month-tariff" class="form-control car-tariff-input" disabled>
+                    </form>
+                    <button class="btn" onclick="enableTariffEdit('car')">Editar Tarifas</button>
+                    <button id="car-save-tariffs-btn" class="btn" style="display: none;" onclick="updateTariffs('car')">Guardar Tarifas</button>
+                </div>
+            </div>
+
+            <!-- Tarifas para Motos -->
+            <div class="card">
+                <div class="card-header">Tarifas para Motos</div>
+                <div class="card-body">
+                    <form id="motorcycle-tariff-form">
+                        <label for="motorcycle-min-tariff" class="form-label">Tarifa por Minuto:</label>
+                        <input type="number" id="motorcycle-min-tariff" class="form-control motorcycle-tariff-input" disabled>
+
+                        <label for="motorcycle-hour-tariff" class="form-label">Tarifa por Hora:</label>
+                        <input type="number" id="motorcycle-hour-tariff" class="form-control motorcycle-tariff-input" disabled>
+
+                        <label for="motorcycle-day-tariff" class="form-label">Tarifa por Día:</label>
+                        <input type="number" id="motorcycle-day-tariff" class="form-control motorcycle-tariff-input" disabled>
+
+                        <label for="motorcycle-week-tariff" class="form-label">Tarifa por Semana:</label>
+                        <input type="number" id="motorcycle-week-tariff" class="form-control motorcycle-tariff-input" disabled>
+
+                        <label for="motorcycle-month-tariff" class="form-label">Tarifa por Mes:</label>
+                        <input type="number" id="motorcycle-month-tariff" class="form-control motorcycle-tariff-input" disabled>
+                    </form>
+                    <button class="btn" onclick="enableTariffEdit('motorcycle')">Editar Tarifas</button>
+                    <button id="motorcycle-save-tariffs-btn" class="btn" style="display: none;" onclick="updateTariffs('motorcycle')">Guardar Tarifas</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Gestión de Vehículos -->
+        <div id="vehicle-management" class="section" style="display: none;">
+            <h2>Gestión de Vehículos</h2>
+            <div class="card">
+                <div class="card-header">Buscar Vehículo</div>
+                <div class="card-body">
+                    <label for="plate-search" class="form-label">Placa:</label>
+                    <input type="text" id="plate-search" class="form-control" placeholder="Ingrese la placa">
+                    <button class="btn" onclick="searchVehicle()">Buscar</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Lista de Vehículos</div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Placa</th>
+                                <th>Modelo</th>
+                                <th>Propietario</th>
+                                <th>Tipo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vehicle-list">
+                            <!-- Aquí se cargarán dinámicamente los vehículos -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Gestión de Espacios -->
+        <div id="parking-management" class="section" style="display: none;">
+            <h2>Gestión de Espacios</h2>
+            <div class="card">
+                <div class="card-header">Espacios de Parqueo</div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Estado</th>
+                                <th>Tipo</th>
+                                <th>Vehículo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="parking-spot-list">
+                            <!-- Aquí se cargarán dinámicamente los espacios -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+ // Función para mostrar/ocultar secciones
+    function toggleSection(sectionId) {
+        const sections = document.querySelectorAll(".section");
+        sections.forEach(section => section.style.display = "none");
+      
+        document.getElementById(sectionId).style.display = "block";
+
+        // Cargar tarifas si es la sección de tarifas
+        if (sectionId === 'tariff-management') {
+            loadTariffs();
+        }
+    }
+
+    // Función para cargar tarifas iniciales
+    function loadTariffs() {
+        fetch('/admin/tariffss')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al obtener tarifas');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Rellenar los inputs con los valores de tarifas para autos
+                document.getElementById('car-min-tariff').value = data.vehicleMinuteRate || 0;
+                document.getElementById('car-hour-tariff').value = data.vehicleHourlyRate || 0;
+                document.getElementById('car-day-tariff').value = data.vehicleDailyRate || 0;
+                document.getElementById('car-week-tariff').value = data.vehicleWeeklyRate || 0;
+                document.getElementById('car-month-tariff').value = data.vehicleMonthlyRate || 0;
+
+                // Rellenar los inputs con los valores de tarifas para motos
+                document.getElementById('motorcycle-min-tariff').value = data.motorcycleMinuteRate || 0;
+                document.getElementById('motorcycle-hour-tariff').value = data.motorcycleHourlyRate || 0;
+                document.getElementById('motorcycle-day-tariff').value = data.motorcycleDailyRate || 0;
+                document.getElementById('motorcycle-week-tariff').value = data.motorcycleWeeklyRate || 0;
+                document.getElementById('motorcycle-month-tariff').value = data.motorcycleMonthlyRate || 0;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('No se pudieron cargar las tarifas.');
+            });
+    }
+
+    // Función para habilitar campos de tarifas
+    function enableTariffEdit(type) {
+        const inputs = document.querySelectorAll(`.${type}-tariff-input`);
+        inputs.forEach(input => input.disabled = false);
+        document.getElementById(`${type}-save-tariffs-btn`).style.display = "inline-block";
+    }
+
+    // Función para guardar tarifas
+    function updateTariffs(type) {
+        const id = type === 'car' ? 1 : 2; // ID por defecto para carros y motos
+
+        let tariff;
+
+        if (type === "car") {
+            tariff = {
+                vehicleMinuteRate: parseFloat(document.getElementById("car-min-tariff").value) || 0,
+                vehicleHourlyRate: parseFloat(document.getElementById("car-hour-tariff").value) || 0,
+                vehicleDailyRate: parseFloat(document.getElementById("car-day-tariff").value) || 0,
+                vehicleWeeklyRate: parseFloat(document.getElementById("car-week-tariff").value) || 0,
+                vehicleMonthlyRate: parseFloat(document.getElementById("car-month-tariff").value) || 0,
+            };
+        } else if (type === "motorcycle") {
+            tariff = {
+                motorcycleMinuteRate: parseFloat(document.getElementById("motorcycle-min-tariff").value) || 0,
+                motorcycleHourlyRate: parseFloat(document.getElementById("motorcycle-hour-tariff").value) || 0,
+                motorcycleDailyRate: parseFloat(document.getElementById("motorcycle-day-tariff").value) || 0,
+                motorcycleWeeklyRate: parseFloat(document.getElementById("motorcycle-week-tariff").value) || 0,
+                motorcycleMonthlyRate: parseFloat(document.getElementById("motorcycle-month-tariff").value) || 0,
+            };
+        }
+
+        fetch(`/admin/tariffss/${id}`, { // Debes incluir el ID en la URL
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(tariff),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al actualizar las tarifas');
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert('Tarifas actualizadas correctamente');
+            disableTariffEdit(type); // Deshabilitar campos después de guardar
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Hubo un problema al actualizar las tarifas.');
+        });
+    }
+
+    // Función para deshabilitar campos de tarifas
+    function disableTariffEdit(type) {
+        const inputs = document.querySelectorAll(`.${type}-tariff-input`);
+        inputs.forEach(input => input.disabled = true);
+        document.getElementById(`${type}-save-tariffs-btn`).style.display = "none"; // Ocultar botón de guardar
+    }
+
+    </script>
+</body>
+
+</html>
